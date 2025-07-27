@@ -95,3 +95,6 @@ claudecode.vim is a Vim plugin that integrates Claude Code CLI with Vim, providi
 - No default key mappings provided
 - No visual feedback for context sending
 - No customizable leader key mapping prefix
+
+## Implementation policy
+- Use Lua as a main language

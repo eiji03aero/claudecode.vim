@@ -26,6 +26,8 @@ function! s:initialize()
   runtime autoload/claudecode/config.vim
   runtime autoload/claudecode/terminal.vim
   runtime autoload/claudecode/context.vim
+  runtime autoload/claudecode/claude_config.vim
+  runtime autoload/claudecode/diff.vim
   
   " Validate configuration
   if !claudecode#config#validate()
@@ -34,6 +36,9 @@ function! s:initialize()
   
   " Check dependencies (but don't fail completely)
   call claudecode#deps#validate_all()
+  
+  " Generate Claude Code configuration
+  call claudecode#claude_config#generate()
   
   let s:initialized = 1
   return 1
@@ -143,9 +148,60 @@ function! ClaudeCodeSendBuffer()
   endif
 endfunction
 
+
+function! s:ClaudeCodeConfigGenerate()
+  " Command function for :ClaudeCodeConfigGenerate
+  if !s:initialize()
+    return
+  endif
+  
+  call claudecode#claude_config#generate()
+endfunction
+
+function! s:ClaudeCodeConfigUpdate()
+  " Command function for :ClaudeCodeConfigUpdate
+  if !s:initialize()
+    return
+  endif
+  
+  call claudecode#claude_config#update()
+endfunction
+
+function! s:ClaudeCodeConfigRemove()
+  " Command function for :ClaudeCodeConfigRemove
+  if !s:initialize()
+    return
+  endif
+  
+  call claudecode#claude_config#remove()
+endfunction
+
+function! s:ClaudeCodeDiffStatus()
+  " Command function for :ClaudeCodeDiffStatus
+  if !s:initialize()
+    return
+  endif
+  
+  call claudecode#diff#status()
+endfunction
+
+function! s:ClaudeCodeDiffReconnect()
+  " Command function for :ClaudeCodeDiffReconnect
+  if !s:initialize()
+    return
+  endif
+  
+  call claudecode#diff#reconnect()
+endfunction
+
 " Define commands
 command! -nargs=* ClaudeCode call s:ClaudeCode(<f-args>)
 command! ClaudeCodeQuit call s:ClaudeCodeQuit()
+command! ClaudeCodeConfigGenerate call s:ClaudeCodeConfigGenerate()
+command! ClaudeCodeConfigUpdate call s:ClaudeCodeConfigUpdate()
+command! ClaudeCodeConfigRemove call s:ClaudeCodeConfigRemove()
+command! ClaudeCodeDiffStatus call s:ClaudeCodeDiffStatus()
+command! ClaudeCodeDiffReconnect call s:ClaudeCodeDiffReconnect()
 
 " Define functions that can be called by users
 " (These are already defined above as global functions)

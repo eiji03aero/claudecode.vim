@@ -33,7 +33,7 @@ endfunction
 
 function! claudecode#terminal#get_command(args)
   " Generate Claude CLI command with arguments
-  let l:cmd = "claude"
+  let l:cmd = "claude --ide --debug"
   if len(a:args) > 0
     let l:cmd .= " " . join(a:args, " ")
   endif
