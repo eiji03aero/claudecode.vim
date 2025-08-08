@@ -10,9 +10,8 @@
 
 ## Architecture
 
-### Error Handling
-- Uses vim_compat.lua for vim command compatibility
-- error.lua handles error reporting with proper vim highlighting
+### Logging
+- Use logger.lua to log information
 
 ## Code Organization
 - lua/claudecode/ - Main Lua modules

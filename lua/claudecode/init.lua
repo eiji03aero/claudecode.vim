@@ -6,6 +6,7 @@ local deps = require('claudecode.deps')
 local terminal = require('claudecode.terminal')
 local mcp = require('claudecode.mcp')
 local logger = require('claudecode.logger')
+local selection = require('claudecode.selection')
 
 logger.setup(vim_compat.getpid())
 
@@ -31,7 +32,7 @@ function claudecode.launch(args)
             return false
         end
     else
-        vim_compat.echo("MCP server already running", "Comment")
+        logger.debug("MCP server already running")
     end
 
     local existing_terminal = terminal.find_existing()
@@ -81,6 +82,62 @@ function claudecode.get_status()
         },
         mcp_server = mcp.get_status()
     }
+end
+
+function claudecode.send_buffer()
+    if not terminal.is_running() then
+        logger.error("Claude Code terminal is not running")
+        return false
+    end
+    
+    local relative_path, err = selection.get_relative_path()
+    if not relative_path then
+        logger.error("Error getting buffer path: " .. (err or "unknown"))
+        return false
+    end
+    
+    local reference = selection.format_buffer_reference(relative_path)
+    local success = terminal.send_text(reference)
+    
+    if success then
+        logger.debug("Sent buffer reference: " .. reference)
+    else
+        logger.error("Failed to send buffer reference")
+    end
+    
+    terminal.focus()
+    return success
+end
+
+function claudecode.send_selection()
+    if not terminal.is_running() then
+        logger.error("Claude Code terminal is not running")
+        return false
+    end
+    
+    local relative_path, err = selection.get_relative_path()
+    if not relative_path then
+        logger.error("Error getting buffer path: " .. (err or "unknown"))
+        return false
+    end
+    
+    local selected_text, line_info, selection_err = selection.get_visual_selection()
+    if not selected_text then
+        logger.error("Error getting selection: " .. (selection_err or "unknown"))
+        return false
+    end
+    
+    local reference = selection.format_selection_reference(relative_path, line_info, selected_text)
+    local success = terminal.send_text(reference)
+    
+    if success then
+        logger.debug("Sent selection reference: " .. relative_path .. " " .. line_info)
+    else
+        logger.error("Failed to send selection reference")
+    end
+    
+    terminal.focus()
+    return success
 end
 
 return claudecode

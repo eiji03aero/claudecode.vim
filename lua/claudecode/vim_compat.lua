@@ -62,7 +62,7 @@ function vim_compat.getpos(expr)
     return vim.eval(string.format('getpos(%q)', expr))
 end
 
-function vim_compat.termopen(cmd, opts)
+function vim_compat.term_start(cmd, opts)
     -- Standard Vim doesn't have termopen, use term_start instead
     local term_opts = {}
 
@@ -117,11 +117,10 @@ function vim_compat.termopen(cmd, opts)
     end
 
     vim.command(string.format("let term_cmd = %q", cmd))
-
-    -- Debug: Show what we're trying to execute
-    local success, term_id = pcall(vim.eval, 'term_start(term_cmd, term_opts)')
+    local success, term_buffer_number = pcall(vim.eval, 'term_start(term_cmd, term_opts)')
+    vim_compat.echo("got term_buffer_number: " .. term_buffer_number)
     if not success then
-        logger.error("term_start failed: " .. tostring(term_id))
+        logger.error("term_start failed")
         vim.command("unlet term_opts")
         vim.command("unlet term_cmd")
         return nil
@@ -129,7 +128,7 @@ function vim_compat.termopen(cmd, opts)
 
     vim.command("unlet term_opts")
     vim.command("unlet term_cmd")
-    return term_id
+    return term_buffer_number
 end
 
 function vim_compat.localtime()
@@ -144,19 +143,44 @@ function vim_compat.jobstatus(job_id)
     return result or "dead"
 end
 
+function vim_compat.term_getstatus(bufnr)
+    local success, result = pcall(vim.eval, string.format('term_getstatus(%d)', bufnr))
+    if not success then
+        return "finished"
+    end
+    return result or "finished"
+end
+
+function vim_compat.term_sendraw(term_buffer_number, text)
+    local success, job = pcall(vim.eval, string.format('term_getjob(%d)', term_buffer_number))
+    if not success or not job then
+        return false
+    end
+    
+    local send_success = pcall(vim.eval, string.format('ch_sendraw(%s, %q)', job, text))
+    return send_success
+end
+
+function vim_compat.term_sendkeys(term_buffer_number, text)
+    local success = pcall(vim.eval, string.format('term_sendkeys(%d, %q)', term_buffer_number, text))
+    return success
+end
+
 function vim_compat.win_findbuf(bufnr)
     -- Standard Vim doesn't have win_findbuf, implement manually
-    local windows = {}
-    local success, result = pcall(vim.eval, string.format([[
-        let windows = []
+    -- Use vim.command to execute the script and vim.eval to get the result
+    vim.command(string.format([[
+        let g:claudecode_temp_windows = []
         for winnr in range(1, winnr('$'))
             if winbufnr(winnr) == %d
-                call add(windows, winnr)
+                call add(g:claudecode_temp_windows, winnr)
             endif
         endfor
-        windows
     ]], bufnr))
-
+    
+    local success, result = pcall(vim.eval, 'g:claudecode_temp_windows')
+    vim.command('unlet! g:claudecode_temp_windows')
+    
     if success and result then
         return result
     else

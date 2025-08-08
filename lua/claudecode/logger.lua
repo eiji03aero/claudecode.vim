@@ -57,7 +57,7 @@ function M.debug(message)
 end
 
 function M.error(message)
-    local logger = ("claudecode.vim_compat")
+    local vim_compat = require("claudecode.vim_compat")
 
     if not log_file_path then
         return
@@ -76,7 +76,7 @@ function M.error(message)
 end
 
 function M.open_log_file()
-    local logger = ("claudecode.vim_compat")
+    local vim_compat = require("claudecode.vim_compat")
 
     if not log_file_path then
         vim_compat.echo("Log file not initialized. Call setup() first.", "ErrorMsg")

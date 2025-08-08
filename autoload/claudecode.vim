@@ -98,11 +98,25 @@ function! claudecode#open_log() abort
 endfunction
 
 function! claudecode#send_selection() range abort
-    " TODO: Implement selection sending functionality
+    try
+        return luaeval('require("claudecode").send_selection()')
+    catch
+        echohl ErrorMsg
+        echom 'claudecode.vim: ' . v:exception
+        echohl None
+        return 0
+    endtry
 endfunction
 
 function! claudecode#send_buffer() abort
-    " TODO: Implement buffer sending functionality
+    try
+        return luaeval('require("claudecode").send_buffer()')
+    catch
+        echohl ErrorMsg
+        echom 'claudecode.vim: ' . v:exception
+        echohl None
+        return 0
+    endtry
 endfunction
 
 function! claudecode#get_plugin_directory() abort
